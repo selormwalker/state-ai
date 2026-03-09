@@ -619,6 +619,95 @@ code:not(.cb pre code){background:var(--code-bg);padding:2px 6px;border-radius:4
   #sidebar.closed ~ #main #mob-menu-btn,
   #sidebar.closed + #art-resize + * #mob-menu-btn{display:flex !important;}
 }
+  /* ─────────────────────────────────────────────
+   STATE AI • MOBILE OVERRIDES (drop-in block)
+   Place near the END of your <style> tag
+   ───────────────────────────────────────────── */
+
+/* 1) Dynamic viewport height for iOS/Android */
+html, body {
+  min-height: 100dvh;
+  height: 100dvh;
+  height: -webkit-fill-available; /* iOS Safari fallback */
+}
+#app, #main {
+  min-height: 100dvh;
+  height: 100dvh;
+  height: -webkit-fill-available;
+}
+
+/* 2) Safe-area insets for iPhone notch/home bar */
+:root {
+  /* legacy constant(), then modern env() — modern will win */
+  --safe-top: constant(safe-area-inset-top);
+  --safe-right: constant(safe-area-inset-right);
+  --safe-bottom: constant(safe-area-inset-bottom);
+  --safe-left: constant(safe-area-inset-left);
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+}
+#inp-area { padding-bottom: calc(12px + var(--safe-bottom, 0px)); }
+#hdr      { padding-top:    calc(10px + var(--safe-top, 0px)); }
+
+/* 3) Prevent iOS input zoom + improve tap targets */
+#ta, input, select, textarea, button { font-size: 16px; }
+@media (max-width: 700px) {
+  .ib, .fb, .act-btn, .tb-btn, .mode-btn { min-width: 40px; min-height: 36px; }
+  #sendbtn, #stopbtn { height: 38px; }
+}
+
+/* 4) Resilient text sizes on small screens */
+body { font-size: clamp(14px, 1.6vw, 16px); }
+@media (max-width: 420px) {
+  .mcontent  { font-size: 0.98em; }
+  .w-title   { font-size: clamp(1.1em, 4.8vw, 1.5em); }
+  .w-sub     { font-size: clamp(0.88em, 3.6vw, 1em); }
+}
+
+/* 5) Composer: no horizontal overflow on narrow phones */
+.inp-box, .inp-ta-row, #ta {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* 6) Images & artifact panel scaling */
+.msg-img-thumb, .img-wrap img {
+  max-width: 100%;
+  height: auto;
+}
+@media (max-width: 520px) {
+  #art-panel { width: 100% !important; min-width: 0 !important; }
+  .art-code pre { white-space: pre-wrap; word-break: break-word; }
+  #aframe { height: calc(100dvh - 120px); } /* room for header/foot */
+}
+
+/* 7) Smooth, native-feel scrolling on iOS */
+#mi, .chat-list, .cmp-col, .memory-list, .art-code, .canvas-editor {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 8) Tone down heavy blurs on ultra-small screens (perf) */
+@media (max-width: 380px) {
+  #hdr, #inp-area, .starter, #art-panel {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* 9) Ultra-small phones: tighten paddings */
+@media (max-width: 360px) {
+  .inp-tb { padding: 6px 8px 10px; }
+  .inp-ta-row { padding: 10px 10px 2px; }
+  .mode-btn { padding: 3px 8px; }
+  .mrow { padding: 8px 10px; }
+}
+
+/* 10) (Your earlier choice) Hide follow-up chips globally */
+.followup-chips { display: none !important; }
 .followup-chips {
   display: none !important;
 }
