@@ -719,13 +719,83 @@ body { font-size: clamp(14px, 1.6vw, 16px); }
 .followup-chips {
   display: none !important;
 }
+  /* ── In-app splash overlay ───────────────────────────────────────────── */
+#splash {
+  position: fixed; inset: 0; z-index: 99999;
+  display: grid; place-items: center;
+  background: linear-gradient(160deg, rgba(8,12,24,.92) 0%, rgba(10,16,30,.88) 100%);
+  transition: opacity .35s ease, visibility .35s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-top:    env(safe-area-inset-top, 0);
+}
+.light #splash {
+  background: linear-gradient(160deg, rgba(220,232,255,.96) 0%, rgba(200,220,255,.92) 100%);
+}
+#splash.hide { opacity: 0; visibility: hidden; }
+
+#splash .sp-card {
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  padding:28px 26px; border-radius:16px;
+  background: rgba(255,255,255,0.04);
+  border:1px solid rgba(99,153,255,0.18);
+  box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  min-width: 220px;
+}
+.light #splash .sp-card {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(60,100,220,0.18);
+}
+
+#splash .sp-logo {
+  width:64px; height:64px; display:grid; place-items:center;
+  border-radius:14px; background: rgba(77,142,255,.14);
+  box-shadow: 0 8px 28px rgba(77,142,255,.25);
+}
+
+#splash .sp-title {
+  font-family: 'Playfair Display', serif; font-weight:700;
+  font-size: 1.3em; color: var(--text);
+}
+#splash .sp-sub { font-size:.9em; color: var(--muted); }
+
+/* Animated loading bar */
+#splash .sp-spinner {
+  width: 64px; height: 6px; border-radius: 999px;
+  background: rgba(255,255,255,.12); overflow:hidden; position: relative;
+}
+#splash .sp-spinner::after {
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  width: 30%; left:-30%; border-radius:999px;
+  animation: spflow 1.1s ease-in-out infinite;
+}
+@keyframes spflow {
+  0%{ left:-30%; width:30%; }
+  50%{ left:40%;  width:40%; }
+  100%{ left:100%; width:20%; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-
+<!-- Standalone loading screen (in-app splash) -->
+<div id="splash" role="status" aria-live="polite">
+  <div class="sp-card">
+    <div class="sp-logo" aria-hidden="true">
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#4d8eff"/>
+        <rect x="6" y="9"  width="20" height="4" rx="2" fill="white" opacity="0.35"/>
+        <rect x="6" y="15" width="20" height="4" rx="2" fill="white" opacity="0.62"/>
+        <rect x="6" y="21" width="20" height="4" rx="2" fill="white"/>
+      </svg>
+    </div>
+    <div class="sp-title">State</div>
+    <div class="sp-sub">Warming up…</div>
+    <div class="sp-spinner" aria-hidden="true"></div>
+  </div>
+</div>
 
 <!-- Auth Screen -->
 <div id="auth-screen">
@@ -4665,6 +4735,34 @@ AUTH.init();
       navigator.serviceWorker.register('/sw.js').catch(console.error);
     });
   }
+</script>
+  <script>
+  (function(){
+    function hideSplash(reason){
+      var el = document.getElementById('splash');
+      if (!el || el.classList.contains('hide')) return;
+      el.classList.add('hide');
+      setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 450);
+      // console.debug('Splash hidden:', reason);
+    }
+
+    // Hide when the page fully loads
+    window.addEventListener('load', function(){ hideSplash('window-load'); });
+
+    // Hide when your app signals it's ready
+    window.addEventListener('state:ready', function(){ hideSplash('state-ready'); });
+
+    // Safety: hide after 5s even on slow networks
+    setTimeout(function(){ hideSplash('timeout'); }, 5000);
+
+    // If SW is ready fast, it's a good signal too
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.ready.then(function(){ hideSplash('sw-ready'); });
+    }
+
+    // Expose for manual use if ever needed
+    window.StateSplash = { hide: hideSplash };
+  })();
 </script>
 </body>
 </html>
