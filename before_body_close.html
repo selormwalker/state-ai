@@ -1,8 +1,0 @@
-<!-- PWA: Service worker registration -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function(){
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
-    });
-  }
-</script>
